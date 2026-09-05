@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MPC Report - Portal Pelaporan Navigasi</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f3ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+              950: '#1e1b4b',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Custom Scrollbar & Effect Ungu Kebiruan */
+    body {
+      background-color: #0c0a1d;
+      background-image: 
+        radial-gradient(circle at 20% 15%, rgba(99, 102, 241, 0.35) 0%, transparent 45%),
+        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.28) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.18) 0%, transparent 65%);
+      background-attachment: fixed;
+    }
+
+    .glass-card {
+      background: rgba(30, 27, 75, 0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(165, 180, 252, 0.2);
+    }
+
+    .glass-input {
+      background: rgba(15, 12, 36, 0.7);
+      border: 1px solid rgba(165, 180, 252, 0.25);
+      color: #ffffff;
+    }
+
+    .glass-input:focus {
+      border-color: #818cf8;
+      outline: none;
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.35);
+    }
+
+    .glass-button {
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.5) 0%, rgba(124, 58, 237, 0.4) 100%);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(199, 210, 254, 0.25);
+    }
+
+    .glass-button:active {
+      transform: scale(0.98);
+    }
+
+    .glow-effect {
+      box-shadow: 0 0 30px -5px rgba(99, 102, 241, 0.5);
+    }
+
+    /* Animation pulse indicator */
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.15); }
+    }
+    .animate-pulse-slow {
+      animation: pulse-slow 2.5s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="font-sans text-slate-100 min-h-screen flex flex-col justify-between items-center p-4 sm:p-6 antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Canvas Tersembunyi untuk Merangkum Laporan Menjadi 1 Gambar -->
+  <canvas id="canvas-report" class="hidden"></canvas>
+
+  <!-- Container Utama (Responsif Mobile) -->
+  <main class="w-full max-w-md mx-auto flex-1 flex flex-col justify-between py-2">
+    
+    <!-- ==================== VIEW 1: HUB UTAMA ==================== -->
+    <div id="view-hub" class="w-full space-y-4 transition-all duration-300">
+      
+      <!-- Header & Logo MPC Report -->
+      <header class="text-center relative pt-2 pb-2">
+        <div class="absolute top-0 right-0 flex gap-2">
+          <button onclick="bukaModalQR()" title="Kode QR" class="p-2.5 rounded-full glass-card hover:bg-white/10 text-indigo-200 hover:text-white transition-all duration-200 active:scale-95">
+            <i data-lucide="qr-code" class="w-5 h-5"></i>
+          </button>
+          <button onclick="salinLinkProfil()" title="Bagikan Halaman" class="p-2.5 rounded-full glass-card hover:bg-white/10 text-indigo-200 hover:text-white transition-all duration-200 active:scale-95">
+            <i data-lucide="share-2" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Icon Badge Logo MPC Report -->
+        <div class="relative inline-block mb-3 mt-1">
+          <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl p-0.5 bg-gradient-to-tr from-indigo-500 via-purple-500 to-blue-400 glow-effect mx-auto flex items-center justify-center">
+            <div class="w-full h-full bg-slate-950/90 rounded-[22px] flex items-center justify-center border border-indigo-400/30">
+              <i data-lucide="file-text" class="w-10 h-10 text-indigo-300"></i>
+            </div>
+          </div>
+          <!-- Status Indicator Aktif -->
+          <span class="absolute -bottom-1 -right-1 flex h-4 w-4">
+            <span class="animate-pulse-slow absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-slate-950"></span>
+          </span>
+        </div>
+
+        <!-- Judul & Sub-judul -->
+        <h1 class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white via-indigo-100 to-purple-200 bg-clip-text text-transparent uppercase">
+          MPC Report
+        </h1>
+        <p class="text-xs text-indigo-200/80 mt-1.5 px-4 font-medium leading-relaxed">
+          Pusat Akses & Portal Pelaporan Operasional Terpadu
+        </p>
+
+        <!-- Status Bar -->
+        <div class="flex justify-center items-center gap-2 mt-3 text-[11px]">
+          <span class="px-3 py-1 rounded-full glass-card text-indigo-300 border border-indigo-500/30 flex items-center gap-1.5">
+            <i data-lucide="activity" class="w-3.5 h-3.5 text-emerald-400"></i> Form System Active
+          </span>
+          <button onclick="bukaRiwayat()" class="px-3 py-1 rounded-full glass-card text-purple-300 border border-purple-500/30 flex items-center gap-1.5 hover:bg-white/10 transition-colors">
+            <i data-lucide="clock" class="w-3.5 h-3.5 text-purple-400"></i> <span id="badge-total-laporan">0 Laporan</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Pilihan Link Laporan Interaktif -->
+      <section class="space-y-3.5 px-1 pt-2">
+        <div class="flex items-center justify-between text-xs text-indigo-300/70 font-semibold uppercase tracking-wider px-1">
+          <span>Pilih Jenis Laporan</span>
+          <span class="flex items-center gap-1"><i data-lucide="layers" class="w-3.5 h-3.5 text-indigo-400"></i> 4 Kategori</span>
+        </div>
+
+        <!-- Link 1: Laporan Kerusakan -->
+        <button onclick="bukaForm('kerusakan')" 
+                class="group glass-button text-left block w-full p-4 rounded-2xl transition-all duration-300 hover:border-rose-400/50 hover:shadow-lg hover:shadow-rose-500/20 active:scale-[0.99]">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3.5">
+              <div class="p-3 rounded-xl bg-gradient-to-br from-rose-500 to-indigo-600 text-white shadow-md group-hover:scale-105 transition-transform duration-300">
+                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="font-bold text-white group-hover:text-rose-200 transition-colors">
+                    Laporan Kerusakan
+                  </h2>
+                  <span class="text-[9px] bg-rose-500/30 text-rose-200 border border-rose-400/30 px-1.5 py-0.5 rounded font-semibold uppercase">Urgent</span>
+                </div>
+                <p class="text-xs text-indigo-200/70 mt-0.5">
+                  Input breakdown, trouble & upload 1-4 foto
+                </p>
+              </div>
+            </div>
+            <div class="text-indigo-300 group-hover:translate-x-1 transition-transform duration-300 pl-2">
+              <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </div>
+          </div>
+        </button>
+
+        <!-- Link 2: Laporan Preventif -->
+        <button onclick="bukaForm('preventif')" 
+                class="group glass-button text-left block w-full p-4 rounded-2xl transition-all duration-300 hover:border-indigo-400/50 hover:shadow-lg hover:shadow-indigo-500/20 active:scale-[0.99]">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3.5">
+              <div class="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md group-hover:scale-105 transition-transform duration-300">
+                <i data-lucide="shield-check" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="font-bold text-white group-hover:text-indigo-200 transition-colors">
+                    Laporan Preventif
+                  </h2>
+                  <span class="text-[9px] bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 px-1.5 py-0.5 rounded font-semibold uppercase">Rutin</span>
+                </div>
+                <p class="text-xs text-indigo-200/70 mt-0.5">
+                  Form inspeksi berkala & bukti foto kondisi
+                </p>
+              </div>
+            </div>
+            <div class="text-indigo-300 group-hover:translate-x-1 transition-transform duration-300 pl-2">
+              <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </div>
+          </div>
+        </button>
+
+        <!-- Link 3: Before After -->
+        <button onclick="bukaForm('beforeafter')" 
+                class="group glass-button text-left block w-full p-4 rounded-2xl transition-all duration-300 hover:border-blue-400/50 hover:shadow-lg hover:shadow-blue-500/20 active:scale-[0.99]">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3.5">
+              <div class="p-3 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-md group-hover:scale-105 transition-transform duration-300">
+                <i data-lucide="arrow-left-right" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="font-bold text-white group-hover:text-blue-200 transition-colors">
+                    Before After
+                  </h2>
+                  <span class="text-[9px] bg-blue-500/30 text-blue-200 border border-blue-400/30 px-1.5 py-0.5 rounded font-semibold uppercase">Hasil</span>
+                </div>
+                <p class="text-xs text-indigo-200/70 mt-0.5">
+                  Dokumentasi komparasi perbaikan (1-4 foto)
+                </p>
+              </div>
+            </div>
+            <div class="text-indigo-300 group-hover:translate-x-1 transition-transform duration-300 pl-2">
+              <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </div>
+          </div>
+        </button>
+
+        <!-- Link 4: Penambahan Oli -->
+        <button onclick="bukaForm('oli')" 
+                class="group glass-button text-left block w-full p-4 rounded-2xl transition-all duration-300 hover:border-amber-400/50 hover:shadow-lg hover:shadow-amber-500/20 active:scale-[0.99]">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3.5">
+              <div class="p-3 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md group-hover:scale-105 transition-transform duration-300">
+                <i data-lucide="droplet" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="font-bold text-white group-hover:text-amber-200 transition-colors">
+                    Penambahan Oli
+                  </h2>
+                  <span class="text-[9px] bg-amber-500/30 text-amber-200 border border-amber-400/30 px-1.5 py-0.5 rounded font-semibold uppercase">Oli / Fluid</span>
+                </div>
+                <p class="text-xs text-indigo-200/70 mt-0.5">
+                  Oli Hydrolick 46, Gearbox 220 & Oli lainnya
+                </p>
+              </div>
+            </div>
+            <div class="text-indigo-300 group-hover:translate-x-1 transition-transform duration-300 pl-2">
+              <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </div>
+          </div>
+        </button>
+      </section>
+
+      <!-- Quick Action Menu -->
+      <div class="grid grid-cols-2 gap-3 px-1 pt-2">
+        <button onclick="bukaRiwayat()" class="glass-card hover:bg-white/10 p-3 rounded-xl flex items-center justify-center gap-2 text-xs font-medium text-indigo-200 hover:text-white transition-all">
+          <i data-lucide="history" class="w-4 h-4 text-purple-400"></i>
+          <span>Riwayat Laporan</span>
+        </button>
+        <button onclick="salinLinkProfil()" class="glass-card hover:bg-white/10 p-3 rounded-xl flex items-center justify-center gap-2 text-xs font-medium text-indigo-200 hover:text-white transition-all">
+          <i data-lucide="copy" class="w-4 h-4 text-indigo-400"></i>
+          <span>Salin Tautan Portal</span>
+        </button>
+      </div>
+    </div>
+
+
+    <!-- ==================== VIEW 2: FORM LAPORAN DENGAN UPLOAD FOTO ==================== -->
+    <div id="view-form" class="w-full space-y-4 hidden transition-all duration-300">
+      
+      <!-- Top Navigation Form Header -->
+      <div class="flex items-center justify-between border-b border-indigo-900/60 pb-3">
+        <button onclick="kembaliKeHub()" class="p-2 rounded-xl glass-card hover:bg-white/10 text-indigo-200 hover:text-white flex items-center gap-1.5 text-xs font-medium">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
+        </button>
+        <div class="text-right">
+          <span id="form-badge-theme" class="text-[10px] bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 px-2 py-0.5 rounded-full font-bold uppercase">Form Active</span>
+        </div>
+      </div>
+
+      <!-- Form Card Container -->
+      <div class="glass-card p-5 rounded-3xl space-y-4 border border-indigo-500/30">
+        
+        <!-- Header Form -->
+        <div class="flex items-center gap-3">
+          <div id="form-icon-container" class="p-3 rounded-2xl bg-indigo-600 text-white">
+            <i id="form-icon" data-lucide="file-text" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h2 id="form-title" class="text-lg font-bold text-white">Laporan Kerusakan</h2>
+            <p id="form-subtitle" class="text-xs text-indigo-200/70">Lengkapi data keterangan & unggah 1-4 foto</p>
+          </div>
+        </div>
+
+        <!-- Form Element -->
+        <form id="main-report-form" onsubmit="submitFormLaporan(event)" class="space-y-4 text-xs pt-2">
+          
+          <!-- Field 1: Pelapor (Default: Robi) -->
+          <div class="space-y-1.5">
+            <label class="font-semibold text-indigo-200 flex items-center gap-1.5">
+              <i data-lucide="user" class="w-3.5 h-3.5 text-indigo-400"></i> Nama Pelapor / Teknisi <span class="text-rose-400">*</span>
+            </label>
+            <input type="text" id="input-pelapor" value="Robi" required class="w-full glass-input rounded-xl p-3 text-xs" placeholder="Contoh: Robi - Maintenance Team">
+          </div>
+
+          <!-- Field 2: Lokasi / Nama Unit / Mesin -->
+          <div class="space-y-1.5">
+            <label class="font-semibold text-indigo-200 flex items-center gap-1.5">
+              <i data-lucide="map-pin" class="w-3.5 h-3.5 text-indigo-400"></i> Nama Unit / Mesin / Area <span class="text-rose-400">*</span>
+            </label>
+            <input type="text" id="input-unit" required class="w-full glass-input rounded-xl p-3 text-xs" placeholder="Contoh: Conveyor Belt Line 2 / Pompa Utama">
+          </div>
+
+          <!-- Dynamic Field berdasarkan Tema -->
+          <div id="dynamic-fields-container" class="space-y-3">
+            <!-- Diisi via JS (Urgensi untuk kerusakan, Jenis Oli + Liter untuk Penambahan Oli, dsb) -->
+          </div>
+
+          <!-- Field 3: Keterangan / Detail Laporan -->
+          <div class="space-y-1.5">
+            <label class="font-semibold text-indigo-200 flex items-center gap-1.5">
+              <i data-lucide="align-left" class="w-3.5 h-3.5 text-indigo-400"></i> Keterangan & Catatan Detail <span class="text-rose-400">*</span>
+            </label>
+            <textarea id="input-keterangan" required rows="3" class="w-full glass-input rounded-xl p-3 text-xs leading-relaxed" placeholder="Tuliskan kronologi, tindakan, atau keterangan detail di sini..."></textarea>
+          </div>
+
+          <!-- Upload Gambar (1 Sampai 4 Foto) -->
+          <div class="space-y-2 pt-1">
+            <div class="flex items-center justify-between">
+              <label class="font-semibold text-indigo-200 flex items-center gap-1.5">
+                <i data-lucide="camera" class="w-3.5 h-3.5 text-purple-400"></i> Unggah Foto Bukti (1 - 4 Foto) <span class="text-rose-400">*</span>
+              </label>
+              <span id="foto-counter" class="text-[11px] font-bold text-indigo-300">0 / 4 Foto</span>
+            </div>
+
+            <!-- Box Input File Dropzone -->
+            <div id="dropzone-area" class="border-2 border-dashed border-indigo-400/40 hover:border-indigo-400 bg-slate-900/40 rounded-2xl p-4 text-center cursor-pointer transition-colors relative">
+              <input type="file" id="input-foto" accept="image/*" multiple onchange="handleFotoUpload(event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+              <div class="space-y-1 pointer-events-none">
+                <i data-lucide="image-plus" class="w-7 h-7 mx-auto text-indigo-400"></i>
+                <p class="text-xs font-semibold text-indigo-100">Klik atau Sentuh untuk Pilih Foto</p>
+                <p class="text-[10px] text-indigo-300/60">Bisa memilih sekaligus hingga 4 foto (PNG/JPG)</p>
+              </div>
+            </div>
+
+            <!-- Preview Container Grid 1-4 Foto -->
+            <div id="preview-foto-grid" class="grid grid-cols-2 gap-2.5 pt-1">
+              <!-- Thumbnail foto di-generate lewat Javascript -->
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="w-full py-3.5 mt-2 bg-gradient-to-r from-indigo-500 via-purple-600 to-indigo-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-xs rounded-xl transition-all shadow-lg shadow-indigo-500/30 active:scale-[0.98] flex items-center justify-center gap-2">
+            <i data-lucide="send" class="w-4 h-4"></i>
+            <span id="btn-submit-label">Kirim & Rangkum Gambar</span>
+          </button>
+        </form>
+
+      </div>
+    </div>
+
+
+    <!-- ==================== VIEW 3: RIWAYAT & DETAIL LAPORAN ==================== -->
+    <div id="view-history" class="w-full space-y-4 hidden transition-all duration-300">
+      <div class="flex items-center justify-between border-b border-indigo-900/60 pb-3">
+        <button onclick="kembaliKeHub()" class="p-2 rounded-xl glass-card hover:bg-white/10 text-indigo-200 hover:text-white flex items-center gap-1.5 text-xs font-medium">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Ke Halaman Utama
+        </button>
+        <span class="text-xs font-bold text-indigo-200">Riwayat Pelaporan</span>
+      </div>
+
+      <!-- Container Daftar Laporan -->
+      <div id="daftar-laporan-container" class="space-y-4">
+        <!-- Card Laporan di-render dinamis oleh Javascript -->
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-indigo-300/50 py-3 border-t border-indigo-900/40 mt-4">
+      <p>© 2026 MPC Report • Maintenance System Portal</p>
+    </footer>
+
+  </main>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 transform translate-y-16 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="bg-indigo-900/90 text-white border border-indigo-400/40 px-4 py-2.5 rounded-full shadow-xl backdrop-blur-md flex items-center gap-2 text-sm font-medium">
+      <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+      <span id="toast-message">Notifikasi</span>
+    </div>
+  </div>
+
+  <!-- Modal Kode QR -->
+  <div id="modal-qr" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+    <div class="glass-card w-full max-w-sm p-6 rounded-3xl text-center relative border border-indigo-500/30">
+      <button onclick="tutupModalQR()" class="absolute top-4 right-4 text-indigo-300 hover:text-white p-1 rounded-full hover:bg-white/10">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <div class="p-3 bg-indigo-500/20 w-fit rounded-2xl mx-auto mb-3">
+        <i data-lucide="qr-code" class="w-8 h-8 text-indigo-300"></i>
+      </div>
+      <h3 class="text-lg font-bold text-white mb-1">Kode QR MPC Report</h3>
+      <p class="text-xs text-indigo-200/70 mb-5">Pindai dari HP untuk membuka portal laporan ini</p>
+      
+      <!-- Generated SVG QR Code -->
+      <div class="bg-white p-4 rounded-2xl mx-auto w-48 h-48 flex items-center justify-center shadow-inner mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-full text-indigo-950 fill-current">
+          <rect x="10" y="10" width="25" height="25" rx="3" fill="none" stroke="currentColor" stroke-width="4"/>
+          <rect x="17" y="17" width="11" height="11" fill="currentColor"/>
+          <rect x="65" y="10" width="25" height="25" rx="3" fill="none" stroke="currentColor" stroke-width="4"/>
+          <rect x="72" y="17" width="11" height="11" fill="currentColor"/>
+          <rect x="10" y="65" width="25" height="25" rx="3" fill="none" stroke="currentColor" stroke-width="4"/>
+          <rect x="17" y="72" width="11" height="11" fill="currentColor"/>
+          <rect x="42" y="12" width="7" height="7"/>
+          <rect x="52" y="20" width="7" height="7"/>
+          <rect x="42" y="28" width="7" height="7"/>
+          <rect x="12" y="42" width="7" height="7"/>
+          <rect x="28" y="42" width="7" height="7"/>
+          <rect x="42" y="42" width="16" height="16"/>
+          <rect x="65" y="42" width="7" height="7"/>
+          <rect x="80" y="42" width="7" height="7"/>
+          <rect x="42" y="65" width="7" height="12"/>
+          <rect x="55" y="75" width="12" height="7"/>
+          <rect x="72" y="65" width="15" height="7"/>
+          <rect x="72" y="80" width="7" height="10"/>
+        </svg>
+      </div>
+      <p class="text-[11px] text-indigo-300/60">https://mpc-report.internal/portal</p>
+    </div>
+  </div>
+
+
+  <!-- JavaScript Logika Lengkap -->
+  <script>
+    // Variable State Aplikasi
+    let currentTheme = 'kerusakan'; // 'kerusakan' | 'preventif' | 'beforeafter' | 'oli'
+    let uploadedImages = [];
+    let listLaporan = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+      updateCounterBadge();
+    });
+
+    // Toast Alert
+    function tampilkanToast(pesan) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      if (!toast || !toastMsg) return;
+      toastMsg.textContent = pesan;
+      
+      toast.classList.remove('translate-y-16', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-16', 'opacity-0');
+      }, 2500);
+    }
+
+    // Salin Link Portal
+    function salinLinkProfil() {
+      const currentUrl = window.location.href;
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(currentUrl).then(() => {
+          tampilkanToast("Tautan MPC Report disalin!");
+        }).catch(() => fallbackCopyText(currentUrl));
+      } else {
+        fallbackCopyText(currentUrl);
+      }
+    }
+
+    function fallbackCopyText(text) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        tampilkanToast("Tautan MPC Report disalin!");
+      } catch (err) {
+        tampilkanToast("Gagal menyalin tautan.");
+      }
+      document.body.removeChild(textArea);
+    }
+
+    // Navigasi Tampilan
+    function kembaliKeHub() {
+      document.getElementById('view-form').classList.add('hidden');
+      document.getElementById('view-history').classList.add('hidden');
+      document.getElementById('view-hub').classList.remove('hidden');
+    }
+
+    function bukaRiwayat() {
+      document.getElementById('view-hub').classList.add('hidden');
+      document.getElementById('view-form').classList.add('hidden');
+      document.getElementById('view-history').classList.remove('hidden');
+      renderDaftarLaporan();
+    }
+
+    // Tampilkan / Sembunyikan Input Tambahan jika memilih 'Oli Lainnya'
+    function cekOliLainnya(e) {
+      const customContainer = document.getElementById('container-oli-custom');
+      if (customContainer) {
+        if (e.target.value === 'Oli Lainnya') {
+          customContainer.classList.remove('hidden');
+        } else {
+          customContainer.classList.add('hidden');
+        }
+      }
+    }
+
+    // Membuka Form Sesuai Tema Link Yang Dipilih
+    function bukaForm(tema) {
+      currentTheme = tema;
+      uploadedImages = [];
+      renderFotoPreview();
+
+      const formEl = document.getElementById('main-report-form');
+      if (formEl) {
+        formEl.reset();
+      }
+
+      const inputPelapor = document.getElementById('input-pelapor');
+      if (inputPelapor) {
+        inputPelapor.value = "Robi";
+      }
+
+      const formTitle = document.getElementById('form-title');
+      const formSubtitle = document.getElementById('form-subtitle');
+      const iconContainer = document.getElementById('form-icon-container');
+      const badgeTheme = document.getElementById('form-badge-theme');
+      const submitBtnLabel = document.getElementById('btn-submit-label');
+      const dynamicContainer = document.getElementById('dynamic-fields-container');
+
+      if (tema === 'kerusakan') {
+        if (formTitle) formTitle.textContent = "Laporan Kerusakan";
+        if (formSubtitle) formSubtitle.textContent = "Trouble breakdown & usulan tindakan cepat";
+        if (badgeTheme) {
+          badgeTheme.textContent = "Urgent Repair";
+          badgeTheme.className = "text-[10px] bg-rose-500/30 text-rose-200 border border-rose-400/30 px-2.5 py-0.5 rounded-full font-bold uppercase";
+        }
+        if (iconContainer) iconContainer.className = "p-3 rounded-2xl bg-gradient-to-br from-rose-500 to-indigo-600 text-white shadow-md";
+        if (submitBtnLabel) submitBtnLabel.textContent = "Kirim & Rangkum Gambar";
+
+        if (dynamicContainer) {
+          dynamicContainer.innerHTML = `
+            <div class="space-y-1.5">
+              <label class="font-semibold text-indigo-200 flex items-center gap-1.5">
+                <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-400"></i> Tingkat Urgensi Kerusakan <span class="text-rose-400">*</span>
+              </label>
+              <select id="input-extra" required class="w-full glass-input rounded-xl p-3 text-xs">
+                <option value="Emergency (Mesin Stop / Kritis)" class="bg-slate-900 text-rose-300">🚨 Emergency (Mesin Stop / Kritis)</option>
+                <option value="Major (Daya Kerja Turun)" class="bg-slate-900 text-yellow-300">⚠️ Major (Performa Terganggu)</option>
+                <option value="Minor (Kerusakan Ringan)" class="bg-slate-900 text-indigo-200">ℹ️ Minor (Perlu Observasi)</option>
+              </select>
+            </div>
+          `;
+        }
+      } else if (tema === 'preventif') {
+        if (formTitle) formTitle.textContent = "Laporan Preventif";
+        if (formSubtitle) formSubtitle.textContent = "Form checklist pemeliharaan & servis berkala";
+        if (badgeTheme) {
+          badgeTheme.textContent = "Preventive Maintenance";
+          badgeTheme.className = "text-[10px] bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 px-2.5 py-0.5 rounded-full font-bold uppercase";
+        }
+        if (iconContainer) iconContainer.className = "p-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md";
+        if (submitBtnLabel) submitBtnLabel.textContent = "Kirim & Rangkum Gambar";
+
+        if (dynamicContainer) {
+          dynamicContainer.innerHTML = `
+            <div class="space-y-1.5">
+              <label class="font-semibold text-indigo-200 flex items-center gap-1.5">
+                <i data-lucide="check-square" class="w-3.5 h-3.5 text-indigo-400"></i> Hasil Inspeksi Pemeliharaan <span class="text-rose-400">*</span>
+              </label>
+              <select id="input-extra" required class="w-full glass-input rounded-xl p-3 text-xs">
+                <option value="Kondisi Normal & Normal Operational" class="bg-slate-900 text-emerald-300">✅ Kondisi Baik & Normal</option>
+                <option value="Perlu Replacement Part Berkelanjutan" class="bg-slate-900 text-yellow-300">🛠️ Perlu Perbaikan Lanjutan</option>
+                <option value="Pembersihan & Pelumasan Selesai" class="bg-slate-900 text-indigo-200">🧹 Rutin Greasing & Cleaning Done</option>
+              </select>
+            </div>
+          `;
+        }
+      } else if (tema === 'beforeafter') {
+        if (formTitle) formTitle.textContent = "Laporan Before After";
+        if (formSubtitle) formSubtitle.textContent = "Dokumentasi komparasi perbaikan unit";
+        if (badgeTheme) {
+          badgeTheme.textContent = "Hasil Perbaikan";
+          badgeTheme.className = "text-[10px] bg-blue-500/30 text-blue-200 border border-blue-400/30 px-2.5 py-0.5 rounded-full font-bold uppercase";
+        }
+        if (iconContainer) iconContainer.className = "p-3 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-md";
+        if (submitBtnLabel) submitBtnLabel.textContent = "Kirim & Rangkum Gambar";
+
+        if (dynamicContainer) {
+          dynamicContainer.innerHTML = `
+            <div class="space-y-1.5">
+              <label class="font-semibold text-indigo-200 flex items-center gap-1.5">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-blue-400"></i> Status Hasil Perbaikan <span class="text-rose-400">*</span>
+              </label>
+              <input type="text" id="input-extra" required class="w-full glass-input rounded-xl p-3 text-xs" placeholder="Contoh: Penggantian Bearing & Cat Ulang Selesai">
+            </div>
+          `;
+        }
+      } else if (tema === 'oli') {
+        if (formTitle) formTitle.textContent = "Laporan Penambahan Oli";
+        if (formSubtitle) formSubtitle.textContent = "Pencatatan pengisian & penambahan cairan oli";
+        if (badgeTheme) {
+          badgeTheme.textContent = "Oli / Fluid Service";
+          badgeTheme.className = "text-[10px] bg-amber-500/30 text-amber-200 border border-amber-400/30 px-2.5 py-0.5 rounded-full font-bold uppercase";
+        }
+        if (iconContainer) iconContainer.className = "p-3 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md";
+        if (submitBtnLabel) submitBtnLabel.textContent = "Kirim & Rangkum Gambar";
+
+        if (dynamicContainer) {
+          dynamicContainer.innerHTML = `
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="space-y-1.5">
+                <label class="font-semibold text-amber-200 flex items-center gap-1.5">
+                  <i data-lucide="droplet" class="w-3.5 h-3.5 text-amber-400"></i> Pilih Jenis Oli <span class="text-rose-400">*</span>
+                </label>
+                <select id="input-extra" onchange="cekOliLainnya(event)" required class="w-full glass-input rounded-xl p-3 text-xs">
+                  <option value="Oli Hydrolick 46" class="bg-slate-900 text-amber-300">🛢️ Oli Hydrolick 46</option>
+                  <option value="Oli Gearbox 220" class="bg-slate-900 text-orange-300">⚙️ Oli Gearbox 220</option>
+                  <option value="Oli Lainnya" class="bg-slate-900 text-indigo-200">🛢️ Oli Lainnya</option>
+                </select>
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="font-semibold text-amber-200 flex items-center gap-1.5">
+                  <i data-lucide="gauge" class="w-3.5 h-3.5 text-amber-400"></i> Jumlah (Liter) <span class="text-rose-400">*</span>
+                </label>
+                <input type="number" id="input-oli-liter" step="0.1" min="0.1" required class="w-full glass-input rounded-xl p-3 text-xs" placeholder="Contoh: 5">
+              </div>
+            </div>
+            
+            <div id="container-oli-custom" class="space-y-1.5 hidden">
+              <label class="font-semibold text-indigo-200 flex items-center gap-1.5">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5 text-amber-400"></i> Sebutkan Nama / Jenis Oli Lainnya
+              </label>
+              <input type="text" id="input-oli-custom" class="w-full glass-input rounded-xl p-3 text-xs" placeholder="Contoh: Oli Engine SAE 40 / Shell Tellus S2">
+            </div>
+          `;
+        }
+      }
+
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+
+      document.getElementById('view-hub').classList.add('hidden');
+      document.getElementById('view-form').classList.remove('hidden');
+    }
+
+    // Logika Pengolahan Upload Foto (1 - 4 Foto)
+    function handleFotoUpload(event) {
+      const files = Array.from(event.target.files || []);
+      if (!files.length) return;
+
+      const sisaKuota = 4 - uploadedImages.length;
+      if (sisaKuota <= 0) {
+        tampilkanToast("Maksimal 4 foto sudah tercapai!");
+        return;
+      }
+
+      const filesToProcess = files.slice(0, sisaKuota);
+      let loadedCount = 0;
+
+      filesToProcess.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          uploadedImages.push(e.target.result);
+          loadedCount++;
+          if (loadedCount === filesToProcess.length) {
+            renderFotoPreview();
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+
+      event.target.value = '';
+    }
+
+    // Render Preview Thumbnail Grid 1 - 4 Foto
+    function renderFotoPreview() {
+      const grid = document.getElementById('preview-foto-grid');
+      const counter = document.getElementById('foto-counter');
+      if (!grid || !counter) return;
+
+      grid.innerHTML = '';
+      counter.textContent = `${uploadedImages.length} / 4 Foto`;
+
+      uploadedImages.forEach((imgSrc, index) => {
+        let tagFoto = `Foto ${index + 1}`;
+        if (currentTheme === 'beforeafter') {
+          tagFoto = index === 0 ? "BEFORE" : (index === 1 ? "AFTER" : `FOTO ${index + 1}`);
+        }
+
+        const item = document.createElement('div');
+        item.className = "relative rounded-xl overflow-hidden glass-card border border-indigo-400/40 group aspect-video bg-slate-950/60";
+        item.innerHTML = `
+          <img src="${imgSrc}" class="w-full h-full object-cover" alt="Preview foto ${index + 1}">
+          <span class="absolute top-1.5 left-1.5 bg-slate-950/80 text-[9px] font-bold text-indigo-200 border border-indigo-400/30 px-2 py-0.5 rounded-md backdrop-blur-sm">
+            ${tagFoto}
+          </span>
+          <button type="button" onclick="hapusFoto(${index})" class="absolute top-1.5 right-1.5 bg-rose-600/90 text-white p-1 rounded-lg hover:bg-rose-500 transition-colors shadow">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        `;
+        grid.appendChild(item);
+      });
+
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
+
+    function hapusFoto(index) {
+      uploadedImages.splice(index, 1);
+      renderFotoPreview();
+      tampilkanToast("Foto dihapus");
+    }
+
+    // Submit Form Laporan
+    async function submitFormLaporan(e) {
+      e.preventDefault();
+
+      if (uploadedImages.length === 0) {
+        tampilkanToast("Wajib mengunggah minimal 1 foto!");
+        return;
+      }
+
+      const pelapor = document.getElementById('input-pelapor').value;
+      const unit = document.getElementById('input-unit').value;
+      let extraVal = document.getElementById('input-extra') ? document.getElementById('input-extra').value : '';
+
+      // Pengolahan khusus untuk Penambahan Oli
+      if (currentTheme === 'oli') {
+        if (extraVal === 'Oli Lainnya') {
+          const customOli = document.getElementById('input-oli-custom') ? document.getElementById('input-oli-custom').value : '';
+          if (customOli.trim() !== '') {
+            extraVal = `Oli Lainnya (${customOli.trim()})`;
+          }
+        }
+        const literVal = document.getElementById('input-oli-liter') ? document.getElementById('input-oli-liter').value : '';
+        if (literVal) {
+          extraVal = `${extraVal} (${literVal} Liter)`;
+        }
+      }
+
+      const keterangan = document.getElementById('input-keterangan').value;
+      const waktuSekarang = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+
+      const rawData = {
+        id: Date.now(),
+        tema: currentTheme,
+        pelapor: pelapor,
+        unit: unit,
+        extra: extraVal,
+        keterangan: keterangan,
+        fotos: [...uploadedImages],
+        waktu: waktuSekarang
+      };
+
+      tampilkanToast("Generasi Gambar Rangkuman...");
+
+      // Render Rangkuman Gambar menggunakan Canvas HTML5
+      const summaryImageBase64 = await buatRangkumanGambar(rawData);
+
+      const dataLaporan = {
+        ...rawData,
+        summaryImage: summaryImageBase64
+      };
+
+      listLaporan.unshift(dataLaporan);
+      updateCounterBadge();
+
+      tampilkanToast("Laporan Berhasil Dibuat & Dirangkum!");
+      bukaRiwayat();
+    }
+
+    function updateCounterBadge() {
+      const badge = document.getElementById('badge-total-laporan');
+      if (badge) {
+        badge.textContent = `${listLaporan.length} Laporan`;
+      }
+    }
+
+    // Canvas Engine: Generate Rangkuman Laporan Menjadi 1 Gambar (Background Terang / Light Mode)
+    function buatRangkumanGambar(laporan) {
+      return new Promise((resolve) => {
+        const canvas = document.getElementById('canvas-report');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = 600;
+        canvas.height = 850;
+
+        // 1. Background Terang (Light Mode: Krem/Putih Abu-abu dengan Gradasi Halus)
+        const gradBg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradBg.addColorStop(0, '#ffffff');
+        gradBg.addColorStop(0.5, '#f4f6ff');
+        gradBg.addColorStop(1, '#eef2ff');
+        ctx.fillStyle = gradBg;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Grid aksen hiasan background terang
+        ctx.strokeStyle = 'rgba(79, 70, 229, 0.05)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < canvas.width; x += 40) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, canvas.height);
+          ctx.stroke();
+        }
+
+        // 2. Header Title Card
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#c7d2fe';
+        ctx.lineWidth = 1.5;
+        roundRect(ctx, 25, 25, 550, 110, 16, true, true);
+
+        let judulTema = "LAPORAN KERUSAKAN";
+        let colorTag = "#e11d48"; // Rose Red
+        if (laporan.tema === 'preventif') {
+          judulTema = "LAPORAN PREVENTIF";
+          colorTag = "#4f46e5"; // Indigo
+        } else if (laporan.tema === 'beforeafter') {
+          judulTema = "LAPORAN BEFORE AFTER";
+          colorTag = "#2563eb"; // Blue
+        } else if (laporan.tema === 'oli') {
+          judulTema = "PENAMBAHAN OLI";
+          colorTag = "#d97706"; // Amber/Orange
+        }
+
+        ctx.fillStyle = '#1e1b4b';
+        ctx.font = 'bold 24px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText("MPC REPORT", 45, 62);
+
+        ctx.fillStyle = colorTag;
+        roundRect(ctx, 45, 75, 180, 24, 6, true, false);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(judulTema, 55, 91);
+
+        ctx.fillStyle = '#4f46e5';
+        ctx.font = 'bold 11px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(`Waktu Input: ${laporan.waktu}`, 350, 92);
+
+        // 3. Information Box Details (Background Terang)
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#cbd5e1';
+        roundRect(ctx, 25, 150, 550, 175, 16, true, true);
+
+        // Unit / Mesin
+        ctx.fillStyle = '#4338ca';
+        ctx.font = 'bold 11px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText("NAMA UNIT / MESIN / AREA:", 45, 175);
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 15px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(truncateText(ctx, laporan.unit, 490), 45, 195);
+
+        // Pelapor & Status
+        ctx.fillStyle = '#4338ca';
+        ctx.font = 'bold 11px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText("PELAPOR:", 45, 225);
+        ctx.fillStyle = '#1e293b';
+        ctx.font = '13px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(truncateText(ctx, laporan.pelapor, 220), 45, 243);
+
+        ctx.fillStyle = '#4338ca';
+        ctx.font = 'bold 11px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(laporan.tema === 'oli' ? "JENIS & JUMLAH OLI:" : "STATUS / DETAIL:", 300, 225);
+        ctx.fillStyle = '#1e293b';
+        ctx.font = '13px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(truncateText(ctx, laporan.extra, 250), 300, 243);
+
+        // Keterangan Text
+        ctx.fillStyle = '#4338ca';
+        ctx.font = 'bold 11px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText("KETERANGAN & DETAIL CATATAN:", 45, 275);
+        ctx.fillStyle = '#334155';
+        ctx.font = '12px "Plus Jakarta Sans", sans-serif';
+        wrapText(ctx, `"${laporan.keterangan}"`, 45, 293, 500, 16);
+
+        // 4. Section Grid Foto Bukti
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(`DOKUMENTASI FOTO BUKTI (${laporan.fotos.length} FOTO)`, 25, 350);
+
+        const imgPromises = laporan.fotos.map((src) => {
+          return new Promise((imgRes) => {
+            const img = new Image();
+            img.onload = () => imgRes(img);
+            img.src = src;
+          });
+        });
+
+        Promise.all(imgPromises).then((images) => {
+          const startY = 365;
+          const gridWidth = 550;
+          const gap = 12;
+
+          if (images.length === 1) {
+            drawCanvasImage(ctx, images[0], 25, startY, gridWidth, 400, "FOTO BUKTI UTAMA");
+          } else if (images.length === 2) {
+            const w = (gridWidth - gap) / 2;
+            drawCanvasImage(ctx, images[0], 25, startY, w, 380, getFotoLabel(laporan.tema, 0));
+            drawCanvasImage(ctx, images[1], 25 + w + gap, startY, w, 380, getFotoLabel(laporan.tema, 1));
+          } else if (images.length === 3) {
+            const w = (gridWidth - gap) / 2;
+            const h = (390 - gap) / 2;
+            drawCanvasImage(ctx, images[0], 25, startY, w, 390, getFotoLabel(laporan.tema, 0));
+            drawCanvasImage(ctx, images[1], 25 + w + gap, startY, w, h, getFotoLabel(laporan.tema, 1));
+            drawCanvasImage(ctx, images[2], 25 + w + gap, startY + h + gap, w, h, getFotoLabel(laporan.tema, 2));
+          } else if (images.length >= 4) {
+            const w = (gridWidth - gap) / 2;
+            const h = (390 - gap) / 2;
+            drawCanvasImage(ctx, images[0], 25, startY, w, h, getFotoLabel(laporan.tema, 0));
+            drawCanvasImage(ctx, images[1], 25 + w + gap, startY, w, h, getFotoLabel(laporan.tema, 1));
+            drawCanvasImage(ctx, images[2], 25, startY + h + gap, w, h, getFotoLabel(laporan.tema, 2));
+            drawCanvasImage(ctx, images[3], 25 + w + gap, startY + h + gap, w, h, getFotoLabel(laporan.tema, 3));
+          }
+
+          // Footer Watermark Card (Latar Belakang Terang)
+          ctx.fillStyle = '#e0e7ff';
+          ctx.fillRect(0, 810, 600, 40);
+          ctx.fillStyle = '#3730a3';
+          ctx.font = 'bold 11px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText("Official MPC Report • Maintenance & Operational System Digital Rangkuman", 110, 834);
+
+          resolve(canvas.toDataURL('image/jpeg', 0.92));
+        });
+      });
+    }
+
+    function getFotoLabel(tema, idx) {
+      if (tema === 'beforeafter') {
+        return idx === 0 ? "BEFORE (SEBELUM)" : (idx === 1 ? "AFTER (SESUDAH)" : `FOTO ${idx + 1}`);
+      }
+      return `FOTO BUKTI #${idx + 1}`;
+    }
+
+    function drawCanvasImage(ctx, img, x, y, width, height, label) {
+      ctx.save();
+      roundRect(ctx, x, y, width, height, 12, false, false);
+      ctx.clip();
+
+      const imgRatio = img.width / img.height;
+      const rectRatio = width / height;
+      let sw = 0, sh = 0, sx = 0, sy = 0;
+
+      if (imgRatio > rectRatio) {
+        sh = img.height;
+        sw = img.height * rectRatio;
+        sx = (img.width - sw) / 2;
+        sy = 0;
+      } else {
+        sw = img.width;
+        sh = img.width / rectRatio;
+        sx = 0;
+        sy = (img.height - sh) / 2;
+      }
+
+      ctx.drawImage(img, sx, sy, sw, sh, x, y, width, height);
+
+      // Label Overlay Badge
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.fillRect(x, y + height - 28, width, 28);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 10px "Plus Jakarta Sans", sans-serif';
+      ctx.fillText(label, x + 10, y + height - 10);
+
+      ctx.restore();
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1;
+      roundRect(ctx, x, y, width, height, 12, false, true);
+    }
+
+    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
+    function truncateText(ctx, text, maxWidth) {
+      if (!text) return '';
+      if (ctx.measureText(text).width <= maxWidth) return text;
+      let truncated = text;
+      while (ctx.measureText(truncated + '...').width > maxWidth && truncated.length > 0) {
+        truncated = truncated.slice(0, -1);
+      }
+      return truncated + '...';
+    }
+
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+      if (!text) return;
+      const words = text.split(' ');
+      let line = '';
+      let currentY = y;
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && n > 0) {
+          ctx.fillText(line, x, currentY);
+          line = words[n] + ' ';
+          currentY += lineHeight;
+          if (currentY > y + (lineHeight * 2)) {
+            ctx.fillText(words.slice(n).join(' ').substring(0, 40) + '...', x, currentY);
+            return;
+          }
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, x, currentY);
+    }
+
+    // Render Daftar Riwayat Laporan
+    function renderDaftarLaporan() {
+      const container = document.getElementById('daftar-laporan-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (listLaporan.length === 0) {
+        container.innerHTML = `
+          <div class="glass-card rounded-3xl p-8 text-center space-y-3">
+            <i data-lucide="inbox" class="w-10 h-10 mx-auto text-indigo-300/50"></i>
+            <p class="text-xs text-indigo-200/70 font-medium">Belum ada laporan yang dibuat.</p>
+            <button onclick="kembaliKeHub()" class="px-4 py-2 bg-indigo-600/50 hover:bg-indigo-600 text-white rounded-xl text-xs font-semibold">
+              Buat Laporan Baru
+            </button>
+          </div>
+        `;
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
+        return;
+      }
+
+      listLaporan.forEach((item) => {
+        let temaTitle = "Laporan Kerusakan";
+        let badgeColor = "bg-rose-500/30 text-rose-200 border-rose-400/30";
+        if (item.tema === 'preventif') {
+          temaTitle = "Laporan Preventif";
+          badgeColor = "bg-indigo-500/30 text-indigo-200 border-indigo-400/30";
+        } else if (item.tema === 'beforeafter') {
+          temaTitle = "Laporan Before After";
+          badgeColor = "bg-blue-500/30 text-blue-200 border-blue-400/30";
+        } else if (item.tema === 'oli') {
+          temaTitle = "Penambahan Oli";
+          badgeColor = "bg-amber-500/30 text-amber-200 border-amber-400/30";
+        }
+
+        const card = document.createElement('div');
+        card.className = "glass-card p-4 rounded-2xl space-y-3 border border-indigo-500/30";
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between border-b border-indigo-900/50 pb-2">
+            <div class="flex items-center gap-2">
+              <span class="text-[9px] px-2 py-0.5 rounded-full border font-bold uppercase ${badgeColor}">
+                ${temaTitle}
+              </span>
+              <span class="text-[10px] text-indigo-300/60">${item.waktu}</span>
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <span class="text-[11px] font-bold text-indigo-300 flex items-center gap-1">
+              <i data-lucide="image" class="w-3.5 h-3.5 text-indigo-400"></i> Gambar Rangkuman Laporan (Background Terang):
+            </span>
+            <div class="relative rounded-xl overflow-hidden border border-indigo-400/40 bg-white aspect-[600/850] w-full max-h-80 group">
+              <img src="${item.summaryImage}" class="w-full h-full object-contain bg-white" alt="Rangkuman Gambar Laporan">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-2">
+            <button onclick="downloadGambarLaporan(${item.id})" class="glass-card hover:bg-white/10 py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold text-indigo-200 hover:text-white transition-all">
+              <i data-lucide="download" class="w-4 h-4 text-purple-400"></i>
+              <span>Download Gambar</span>
+            </button>
+            <button onclick="kirimWhatsApp(${item.id})" class="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-1.5 text-xs font-bold transition-all shadow-lg shadow-emerald-600/30 active:scale-95">
+              <i data-lucide="message-circle" class="w-4 h-4"></i>
+              <span>Kirim ke WA</span>
+            </button>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
+
+    function downloadGambarLaporan(id) {
+      const item = listLaporan.find(l => l.id === id);
+      if (!item || !item.summaryImage) return;
+
+      const a = document.createElement('a');
+      a.href = item.summaryImage;
+      a.download = `MPC_Report_${item.tema}_${Date.now()}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      tampilkanToast("Gambar Laporan Berhasil Diunduh!");
+    }
+
+    // Action Kirim Gambar Rangkuman Langsung ke WhatsApp (Teks Diawali Jenis Laporan)
+    async function kirimWhatsApp(id) {
+      const item = listLaporan.find(l => l.id === id);
+      if (!item) return;
+
+      let namaJenisLaporan = "LAPORAN KERUSAKAN";
+      if (item.tema === 'preventif') namaJenisLaporan = "LAPORAN PREVENTIF";
+      if (item.tema === 'beforeafter') namaJenisLaporan = "LAPORAN BEFORE AFTER";
+      if (item.tema === 'oli') namaJenisLaporan = "LAPORAN PENAMBAHAN OLI";
+
+      // Teks WA diawali jenis laporan + isi keterangan langsung
+      const teksWA = `[${namaJenisLaporan}]\n${item.keterangan || ""}`;
+
+      // Coba bagikan file gambar hasil generate langsung menggunakan Web Share API (HP / Smartphone)
+      try {
+        const res = await fetch(item.summaryImage);
+        const blob = await res.blob();
+        const file = new File([blob], `MPC_Report_${item.tema}_${Date.now()}.jpg`, { type: 'image/jpeg' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `MPC Report - ${namaJenisLaporan}`,
+            text: teksWA
+          });
+          tampilkanToast("Membuka menu Berbagi WhatsApp...");
+          return;
+        }
+      } catch (err) {
+        console.log("Web share tidak tersedia, berpindah ke metode unduh + WA link:", err);
+      }
+
+      // Fallback untuk browser desktop yang tidak mendukung share file gambar secara langsung
+      downloadGambarLaporan(id);
+      const encodedText = encodeURIComponent(teksWA);
+      const urlWA = `https://api.whatsapp.com/send?text=${encodedText}`;
+      
+      window.open(urlWA, '_blank');
+      tampilkanToast("Gambar otomatis diunduh! Silakan lampirkan gambar di WhatsApp.");
+    }
+
+    function bukaModalQR() {
+      const modal = document.getElementById('modal-qr');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      setTimeout(() => modal.classList.remove('opacity-0'), 10);
+    }
+
+    function tutupModalQR() {
+      const modal = document.getElementById('modal-qr');
+      if (!modal) return;
+      modal.classList.add('opacity-0');
+      setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+  </script>
+</body>
+</html>
